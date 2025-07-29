@@ -146,6 +146,7 @@ export function createMinecraftMock() {
             }) as SystemAfterEvents,
             beforeEvents: createEventsProxy(true, {
                 startup: {
+                    subscribeGuard: () => {},
                     onSubscribe: (cb: (e: StartupEvent) => void) =>
                         phase(ExecutionPhase.EarlyExecution, () =>
                             cb({

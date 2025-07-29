@@ -15,7 +15,7 @@ Add the preset to your Jest configuration. This automatically registers the mock
 ```js
 // jest.config.js
 module.exports = {
-  preset: '@bedrock-oss/minecraft-server-jest/preset',
+  preset: '@bedrock-oss/minecraft-server-jest/jest-preset',
 };
 ```
 
