@@ -5,12 +5,12 @@ import {
     phase,
     setPhase,
 } from './controller';
-import {
+import type {
     RawMessage,
     ScriptEventCommandMessageAfterEvent,
     StartupEvent,
-    ScriptEventSource as VanillaSes,
     WorldLoadAfterEvent,
+    ScriptEventSource as VanillaScriptEventSource,
 } from '@minecraft/server';
 
 const Direction = {
@@ -110,7 +110,8 @@ export function createMinecraftMock() {
                     cb({
                         id: channel,
                         message: msg,
-                        sourceType: VanillaSes.Server,
+                        sourceType:
+                            ScriptEventSource.Server as unknown as VanillaScriptEventSource,
                     })
                 );
             },
