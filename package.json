@@ -1,0 +1,42 @@
+{
+    "name": "@bedrock-oss/minecraft-server-jest",
+    "version": "1.0.0",
+    "description": "Typed Jest mock for @minecraft/server",
+    "main": "./dist/register.js",
+    "module": "./dist/register.mjs",
+    "types": "./dist/register.d.ts",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Bedrock-OSS/minecraft-server-jest.git"
+    },
+    "exports": {
+        ".": {
+            "require": "./dist/register.js",
+            "import": "./dist/register.mjs",
+            "types": "./dist/register.d.ts"
+        },
+        "./preset": "./dist/preset.js"
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsup src/register.ts src/preset.ts --format cjs,esm --dts",
+        "prepublishOnly": "npm run build",
+        "format": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
+        "test": "jest"
+    },
+    "devDependencies": {
+        "@minecraft/server": "latest",
+        "jest": "^29.7.0",
+        "prettier": "^3.6.2",
+        "ts-jest": "^29.1.1",
+        "ts-node": "^10.9.2",
+        "tsup": "^7.2.0",
+        "typescript": "^5"
+    },
+    "peerDependencies": {
+        "jest": ">=29"
+    }
+}
