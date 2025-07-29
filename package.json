@@ -6,6 +6,9 @@
     "module": "./dist/register.mjs",
     "types": "./dist/register.d.ts",
     "license": "MIT",
+    "publishConfig": {
+        "access": "public"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/Bedrock-OSS/minecraft-server-jest.git"
