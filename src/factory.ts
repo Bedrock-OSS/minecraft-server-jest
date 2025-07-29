@@ -3,14 +3,16 @@ import {
     ExecutionPhase,
     getPhase,
     phase,
-    setPhase,
 } from './controller';
 import type {
+    SystemAfterEvents,
     RawMessage,
-    ScriptEventCommandMessageAfterEvent,
     StartupEvent,
     WorldLoadAfterEvent,
     ScriptEventSource as VanillaScriptEventSource,
+    SystemBeforeEvents,
+    WorldAfterEvents,
+    WorldBeforeEvents,
 } from '@minecraft/server';
 
 const Direction = {
@@ -35,7 +37,67 @@ const ScriptEventSource = {
 } as const;
 
 export function createMinecraftMock() {
-    const listeners: ((e: ScriptEventCommandMessageAfterEvent) => void)[] = [];
+    type Callback<T> = (arg: T) => void;
+
+    function createEventSignal<T>(
+        before: boolean,
+        subscribeGuard = assertNotInit
+    ) {
+        const subs: Callback<T>[] = [];
+        return {
+            subscribe(cb: Callback<T>) {
+                subscribeGuard();
+                subs.push(cb);
+                return cb;
+            },
+            unsubscribe(cb: Callback<T>) {
+                subscribeGuard();
+                const i = subs.indexOf(cb);
+                if (i !== -1) subs.splice(i, 1);
+            },
+            trigger(data: T) {
+                phase(
+                    before ? ExecutionPhase.ReadOnly : ExecutionPhase.Normal,
+                    () => {
+                        subs.forEach((s) => s(data));
+                    }
+                );
+            },
+        };
+    }
+
+    function createEventsProxy(
+        before: boolean,
+        overrides: Record<string, any> = {}
+    ) {
+        const map = new Map<string | symbol, any>();
+        return new Proxy(
+            {},
+            {
+                get(_t, prop: string | symbol) {
+                    if (!map.has(prop)) {
+                        const opts = overrides[prop as string] ?? {};
+                        map.set(
+                            prop,
+                            createEventSignal(
+                                before,
+                                opts.subscribeGuard ?? assertNotInit
+                            )
+                        );
+                        if (opts.onSubscribe) {
+                            const originalSubscribe = map.get(prop).subscribe;
+                            map.get(prop).subscribe = (cb: any) => {
+                                const res = originalSubscribe(cb);
+                                opts.onSubscribe(cb);
+                                return res;
+                            };
+                        }
+                    }
+                    return map.get(prop);
+                },
+            }
+        );
+    }
 
     function assertPhaseNot(phases: ExecutionPhase[]) {
         if (!arePhaseChecksOn()) return;
@@ -70,50 +132,40 @@ export function createMinecraftMock() {
         ScriptEventSource,
 
         system: {
-            afterEvents: {
-                scriptEventReceive: {
-                    subscribe(
-                        cb: (e: ScriptEventCommandMessageAfterEvent) => void
-                    ) {
-                        assertNotEarlyExecution();
-                        listeners.push(cb);
-                    },
-                },
+            afterEvents: createEventsProxy(false, {
+                scriptEventReceive: { subscribeGuard: assertNotEarlyExecution },
                 worldLoad: {
-                    subscribe(cb: (e: WorldLoadAfterEvent) => void) {
-                        phase(ExecutionPhase.Normal, () => {
+                    onSubscribe: (cb: (e: WorldLoadAfterEvent) => void) =>
+                        phase(ExecutionPhase.Normal, () =>
                             cb({
                                 blockComponentRegistry: {} as any,
                                 itemComponentRegistry: {} as any,
-                            });
-                        });
-                    },
+                            })
+                        ),
                 },
-            },
-            beforeEvents: {
+            }) as SystemAfterEvents,
+            beforeEvents: createEventsProxy(true, {
                 startup: {
-                    subscribe(cb: (e: StartupEvent) => void) {
-                        phase(ExecutionPhase.EarlyExecution, () => {
+                    onSubscribe: (cb: (e: StartupEvent) => void) =>
+                        phase(ExecutionPhase.EarlyExecution, () =>
                             cb({
                                 blockComponentRegistry: {} as any,
                                 itemComponentRegistry: {} as any,
-                            });
-                        });
-                    },
+                            })
+                        ),
                 },
-            },
+            }) as SystemBeforeEvents,
 
             sendScriptEvent(channel: string, msg: string) {
                 assertNotEarlyExecution();
-                if (msg.length > 2048) throw new Error('payload > 2048 chars');
-                listeners.forEach((cb) =>
-                    cb({
-                        id: channel,
-                        message: msg,
-                        sourceType:
-                            ScriptEventSource.Server as unknown as VanillaScriptEventSource,
-                    })
-                );
+                const byteLen = Buffer.byteLength(msg, 'utf8');
+                if (byteLen > 2048) throw new Error('payload > 2048 chars');
+                (this.afterEvents.scriptEventReceive as any).trigger({
+                    id: channel,
+                    message: msg,
+                    sourceType:
+                        ScriptEventSource.Server as unknown as VanillaScriptEventSource,
+                });
             },
 
             clearRun(id: number) {
@@ -135,6 +187,8 @@ export function createMinecraftMock() {
         },
 
         world: {
+            afterEvents: createEventsProxy(false) as WorldAfterEvents,
+            beforeEvents: createEventsProxy(true) as WorldBeforeEvents,
             sendMessage(
                 message: RawMessage | string | (RawMessage | string)[]
             ) {

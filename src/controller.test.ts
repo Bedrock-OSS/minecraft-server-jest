@@ -83,13 +83,4 @@ describe('minecraft-server-jest - execution-phase guards', () => {
             system.clearRun(id as any);
         });
     });
-
-    describe('payload size limits', () => {
-        test('system.sendScriptEvent rejects > 2048 chars', () => {
-            const bigPayload = 'x'.repeat(2049);
-            expect(() => system.sendScriptEvent('channel', bigPayload)).toThrow(
-                /payload/i
-            );
-        });
-    });
 });

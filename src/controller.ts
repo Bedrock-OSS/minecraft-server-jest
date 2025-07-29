@@ -15,14 +15,14 @@ let phaseChecks = true;
 export const setPhase = (p: ExecutionPhase) => {
     currentPhase = p;
 
-    // In Bedrock these phases auto‑promote after any micro‑task:
+    // In Bedrock these phases auto-promote after any micro-task:
     if (
         p === ExecutionPhase.Init ||
         p === ExecutionPhase.EarlyExecution ||
         p === ExecutionPhase.ReadOnly
     ) {
         queueMicrotask(() => {
-            /* only promote if the test hasn’t changed the phase again */
+            /* only promote if the test hasn't changed the phase again */
             if (currentPhase === p) currentPhase = ExecutionPhase.Normal;
         });
     }

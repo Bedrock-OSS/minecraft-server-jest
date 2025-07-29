@@ -1,4 +1,4 @@
-import { disablePhaseChecks } from './controller';
+import { disablePhaseChecks, enablePhaseChecks } from './controller';
 import { jest } from '@jest/globals';
 
 /* Phase checks off for the whole run? */
@@ -10,3 +10,5 @@ jest.doMock(
     () => require('./factory').createMinecraftMock(),
     { virtual: true }
 );
+
+export { disablePhaseChecks, enablePhaseChecks };
