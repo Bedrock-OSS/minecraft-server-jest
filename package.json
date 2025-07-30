@@ -31,6 +31,7 @@
     "scripts": {
         "prebuild": "rimraf dist",
         "build": "tsup src/register.ts src/jest-preset.ts src/mock.ts --format cjs,esm --dts",
+        "generate:enums": "node scripts/extract-enums.js",
         "prepublishOnly": "npm run build",
         "format": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
         "test": "jest"

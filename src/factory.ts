@@ -4,6 +4,7 @@ import {
     getPhase,
     phase,
 } from './controller';
+import * as Enums from './enums';
 import type {
     SystemAfterEvents,
     RawMessage,
@@ -14,27 +15,6 @@ import type {
     WorldAfterEvents,
     WorldBeforeEvents,
 } from '@minecraft/server';
-
-const Direction = {
-    Down: 'Down',
-    East: 'East',
-    North: 'North',
-    South: 'South',
-    Up: 'Up',
-    West: 'West',
-} as const;
-const StructureRotation = {
-    None: 'None',
-    Rotate90: 'Rotate90',
-    Rotate180: 'Rotate180',
-    Rotate270: 'Rotate270',
-} as const;
-const ScriptEventSource = {
-    Block: 'Block',
-    Entity: 'Entity',
-    NPCDialogue: 'NPCDialogue',
-    Server: 'Server',
-} as const;
 
 export function createMinecraftMock() {
     type Callback<T> = (arg: T) => void;
@@ -129,9 +109,7 @@ export function createMinecraftMock() {
     }
 
     return {
-        Direction,
-        StructureRotation,
-        ScriptEventSource,
+        ...Enums,
 
         system: {
             afterEvents: createEventsProxy(false, {
@@ -165,8 +143,8 @@ export function createMinecraftMock() {
                 (this.afterEvents.scriptEventReceive as any).trigger({
                     id: channel,
                     message: msg,
-                    sourceType:
-                        ScriptEventSource.Server as unknown as VanillaScriptEventSource,
+                    sourceType: Enums.ScriptEventSource
+                        .Server as unknown as VanillaScriptEventSource,
                 });
             },
 
