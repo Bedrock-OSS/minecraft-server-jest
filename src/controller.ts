@@ -8,7 +8,7 @@ export enum ExecutionPhase {
 /* current phase value */
 let currentPhase: ExecutionPhase = ExecutionPhase.Init;
 
-/* NEW -> whether guards should throw */
+/* whether guards should throw */
 let phaseChecks = true;
 
 /* phase helpers */

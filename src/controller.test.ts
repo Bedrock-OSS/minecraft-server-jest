@@ -8,7 +8,6 @@ import { system, world } from '@minecraft/server';
 import { beforeEach, describe, expect, jest, test } from '@jest/globals';
 
 describe('minecraft-server-jest - execution-phase guards', () => {
-    /* make every test start from a clean, "normal" state */
     beforeEach(() => {
         setPhase(ExecutionPhase.Normal);
         enablePhaseChecks();
