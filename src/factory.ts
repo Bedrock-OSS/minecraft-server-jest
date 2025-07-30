@@ -104,8 +104,10 @@ export function createMinecraftMock() {
         const phase = getPhase();
 
         if (phases.includes(phase)) {
+            const stackElement = new Error().stack?.split('\n')[3].trim()!;
+            const match = /at ([^ ]+) /.exec(stackElement)?.[1];
             throw new ReferenceError(
-                `Native function [${new Error().stack?.split('\n')[2].trim()}] does not have required privileges.`
+                `Native function [${match}] does not have required privileges.`
             );
         }
     }
@@ -133,7 +135,6 @@ export function createMinecraftMock() {
 
         system: {
             afterEvents: createEventsProxy(false, {
-                scriptEventReceive: { subscribeGuard: assertNotEarlyExecution },
                 worldLoad: {
                     onSubscribe: (cb: (e: WorldLoadAfterEvent) => void) =>
                         phase(ExecutionPhase.Normal, () =>
@@ -175,15 +176,19 @@ export function createMinecraftMock() {
             },
             run(cb: () => void) {
                 assertNotInit();
-                return setTimeout(cb, 50);
+                return setTimeout(() => phase(ExecutionPhase.Normal, cb), 50);
             },
             runInterval(cb: () => void, t = 1) {
                 assertNotInit();
-                return setInterval(cb, t)[Symbol.toPrimitive]();
+                return setInterval(() => phase(ExecutionPhase.Normal, cb), t)[
+                    Symbol.toPrimitive
+                ]();
             },
             runTimeout(cb: () => void, t = 1) {
                 assertNotInit();
-                return setTimeout(cb, t)[Symbol.toPrimitive]();
+                return setTimeout(() => phase(ExecutionPhase.Normal, cb), t)[
+                    Symbol.toPrimitive
+                ]();
             },
         },
 

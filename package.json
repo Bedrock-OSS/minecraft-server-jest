@@ -1,6 +1,6 @@
 {
     "name": "@bedrock-oss/minecraft-server-jest",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "Typed Jest mock for @minecraft/server",
     "main": "./dist/register.js",
     "module": "./dist/register.mjs",
@@ -19,13 +19,18 @@
             "import": "./dist/register.mjs",
             "types": "./dist/register.d.ts"
         },
-        "./jest-preset": "./dist/jest-preset.js"
+        "./jest-preset": "./dist/jest-preset.js",
+        "./mock": "./mock.js"
     },
     "files": [
-        "dist"
+        "dist",
+        "jest-preset.js",
+        "dist/mock.js",
+        "mock.js"
     ],
     "scripts": {
-        "build": "tsup src/register.ts src/jest-preset.ts --format cjs,esm --dts",
+        "prebuild": "rimraf dist",
+        "build": "tsup src/register.ts src/jest-preset.ts src/mock.ts --format cjs,esm --dts",
         "prepublishOnly": "npm run build",
         "format": "prettier --write \"./**/*.{js,jsx,mjs,cjs,ts,tsx,json}\"",
         "test": "jest"
@@ -34,6 +39,7 @@
         "@minecraft/server": "latest",
         "jest": "^29.7.0",
         "prettier": "^3.6.2",
+        "rimraf": "^6.0.1",
         "ts-jest": "^29.1.1",
         "ts-node": "^10.9.2",
         "tsup": "^7.2.0",

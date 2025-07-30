@@ -69,11 +69,11 @@ describe('minecraft-server-jest - execution-phase guards', () => {
     });
 
     describe('early phase', () => {
-        test('scriptEventReceive.subscribe is forbidden', () => {
+        test('scriptEventReceive.subscribe is allowed', () => {
             setPhase(ExecutionPhase.EarlyExecution);
             expect(() =>
                 system.afterEvents.scriptEventReceive.subscribe(jest.fn())
-            ).toThrow();
+            ).not.toThrow();
         });
 
         test('timers are allowed', () => {
@@ -81,6 +81,17 @@ describe('minecraft-server-jest - execution-phase guards', () => {
             const id = system.run(() => {});
             expect(typeof id).toBe('object');
             system.clearRun(id as any);
+        });
+    });
+
+    describe('timers', () => {
+        test('normal mode in timers', () => {
+            setPhase(ExecutionPhase.EarlyExecution);
+            system.run(() => {
+                expect(() =>
+                    world.sendMessage('hello from timer')
+                ).not.toThrow();
+            });
         });
     });
 });
